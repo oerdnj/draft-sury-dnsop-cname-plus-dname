@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This template is for creating an Internet Draft using xml2rfc,
+     which is available here: http://xml.resource.org. -->
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd" [
+<!-- One method to get references from the online citation libraries.
+     There has to be one entity for each item to be referenced. 
+     An alternate method (rfc include) is described in the references. -->
+
+<!ENTITY RFC1034 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.1034.xml">
+<!ENTITY RFC1035 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.1035.xml">
+<!ENTITY RFC2119 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2119.xml">
+<!ENTITY RFC6672 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6672.xml">
+<!ENTITY RFC3743 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.3743.xml">
+<!ENTITY RFC4034 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.4034.xml">
+<!ENTITY RFC7816 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.7816.xml">
+]>
+<?xml-stylesheet type='text/xsl' href='rfc2629.xslt' ?>
+<!-- used by XSLT processors -->
+<!-- For a complete list and description of processing instructions (PIs), 
+     please see http://xml.resource.org/authoring/README.html. -->
+<!-- Below are generally applicable Processing Instructions (PIs) that most I-Ds might want to use.
+     (Here they are set differently than their defaults in xml2rfc v1.32) -->
+<?rfc strict="yes" ?>
+<!-- give errors regarding ID-nits and DTD validation -->
+<!-- control the table of contents (ToC) -->
+<?rfc toc="yes"?>
+<!-- generate a ToC -->
+<?rfc tocdepth="4"?>
+<!-- the number of levels of subsections in ToC. default: 3 -->
+<!-- control references -->
+<?rfc symrefs="yes"?>
+<!-- use symbolic references tags, i.e, [RFC2119] instead of [1] -->
+<?rfc sortrefs="yes" ?>
+<!-- sort the reference entries alphabetically -->
+<!-- control vertical white space 
+     (using these PIs as follows is recommended by the RFC Editor) -->
+<?rfc compact="yes" ?>
+<!-- do not start each main section on a new page -->
+<?rfc subcompact="no" ?>
+<!-- keep one blank line between list items -->
+<!-- end of list of popular I-D processing instructions -->
+<rfc category="std" docName="draft-sury-dnsop-cname-plus-dname-01" ipr="trust200902" updates="1034">
+  <!-- category values: std, bcp, info, exp, and historic
+     ipr values: full3667, noModification3667, noDerivatives3667
+     you can add the attributes updates="NNNN" and obsoletes="NNNN" 
+     they will automatically be output with "(if approved)" -->
+
+  <!-- ***** FRONT MATTER ***** -->
+
+  <front>
+    <!-- The abbreviated title is used in the page header - it is only necessary if the 
+         full title is longer than 39 characters -->
+
+    <title abbrev="CNAME-PLUS-DNAME">CNAME+DNAME Name Redirection</title>
+
+    <!-- add 'role="editor"' below for the editors if appropriate -->
+
+    <!-- Another author who claims to be an editor -->
+
+    <!-- XXX: this should be Ond&#345;ej, Sur&yacute;but 
+              the IETF is Unicode-phobic -->
+    <author fullname="Ondrej Sury" initials="O." surname="Sury">
+      <organization>Internet Systems Consortium</organization>
+      <address>
+	<postal>
+	  <street/>
+	  <country>CZ</country>
+	</postal>
+        <email>ondrej@isc.org</email>
+      </address>
+    </author>
+    <date year="2018"/>
+    <!-- Meta-data Declarations -->
+
+    <area>Internet</area>
+
+    <workgroup>dnsop</workgroup>
+
+    <!-- WG name at the upperleft corner of the doc,
+         IETF is fine for individual submissions.  
+	 If this element is not present, the default is "Network Working Group",
+         which is used by the RFC Editor as a nod to the history of the IETF. -->
+
+    <keyword>DNS</keyword>
+    <keyword>DNAME</keyword>
+    <keyword>CNAME</keyword>
+
+    <!-- Keywords will be incorporated into HTML output
+         files in a meta tag but they have no effect on text or nroff
+         output. If you submit your draft to the RFC Editor, the
+         keywords will be used for the search engine. -->
+
+    <abstract>
+      <t>This document updates RFC1034 to allow coexistence of the CNAME
+      Resource Record with DNAME Resource Record at the same owner node, which
+      provides redirection for a sub-tree of the domain name tree in the DNS
+      system, in a parent zone.  By allowing this cooexistence, DNS system will
+      have a way how to create a sub-tree redirection together that includes the
+      Resource Records owner name.  This would allow parent zones to create full
+      domain aliases.
+      </t>
+    </abstract>
+  </front>
+
+  <middle>
+    <section title="Introduction">
+      <t>
+	<xref target="RFC1034">RFC&nbsp;1034</xref> defines CNAME
+	resource record for cases when there are multiple names for
+	single host.  A CNAME resource record identifies its owner
+	name as an alias, and specifies the corresponding canonical
+	name in the RDATA section of the resource record.  If a CNAME
+	resource record is present at a node, no other data MUST be
+	present; this ensures that the data for a canonical name and
+	its aliases cannot be different.  This rule also insures that
+	a cached CNAME can be used without checking with an
+	authoritative server for other resource record types.
+      </t>
+      <t>
+	However there is already existing exceptions to this
+	rule.  <xref target="RFC4034">RFC&nbsp;4034</xref> defines
+	exception to RRSIG and NSEC records, which MUST exist for the
+	same name as a CNAME resource record in a signed zone.
+      </t>
+
+      <t>
+	<xref target="RFC6672">RFC&nbsp;6672</xref> defines DNAME
+	resource record, which provides redirection for a sub-tree of
+	the domain name tree in the DNS system.  That is, all names
+	that end with a particular suffix are redirected to another
+	part of the DNS.
+      </t>
+
+      <t>
+	The DNAME RR and the CNAME RR <xref target="RFC1034">RFC&nbsp;1034</xref>
+	cause a lookup to (potentially) return data corresponding to a
+	domain name different from the queried domain name.  The
+	difference between the two resource records is that the CNAME
+	RR directs the lookup of data at its owner to another single
+	name, a DNAME RR directs lookups for data at descendents of
+	its owner's name to corresponding names under a different
+	(single) node of the tree.
+      </t>
+
+      <section title="Terminology">
+	<t>
+	  All the basic terms used in this specification are defined
+	  in the documents <xref target="RFC1034">RFC&nbsp;1034</xref>,
+	  <xref target="RFC1035">RFC&nbsp;1035</xref>, and
+	  <xref target="RFC6672">RFC&nbsp;6672</xref>.
+	</t>
+      </section>
+
+      <section title="Requirements Language">
+	<t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL",
+          "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY",
+          and "OPTIONAL" in this document are to be interpreted as
+          described in <xref target="RFC2119">RFC 2119</xref>.</t>
+      </section>
+    </section>
+
+    <section title="Motivation">
+      <t>
+	In some languages, some characters has the variants, which
+	look differently or very similar but are identical in the
+	meaning.  For example, Chinese character U+56FD and its
+	variant U+570B look differently, but are identical in the
+	meaning.  If Internationalized Domain Label or "IDL"
+	<xref target="RFC3743">RFC&nbsp;3743</xref> are composed of
+	variant characters, we regard this kind of IDL as the IDL
+	variant.  If these IDL variants are put into the DNS for
+	resolution, they are expected to be identical in the DNS
+	resolution.  More comprehensible example is that we expect
+	color.example.com to be equivalent with the colour.example.com
+	in the DNS resolution.  Currently this is something we are
+	unable to achieve without copying the data for the owner of
+	the domain record (ie. for the color.example.com) and keeping
+	it in sync by some external mechanism.  The CNAME+DNAME record
+	placed in the parent zone will remove this need for
+	synchronization.  Without this bundling mechanism, current
+	mechanisms such as DNAME or CNAME are not enough capable to
+	solve all the problems with the emergence of internationalized
+	domain names.  The internationalized domain names may have
+	alias or equivalence of the original one.
+      </t>
+      <t>
+	The CNAME+DNAME is not limited to internationalized domain
+	names.  This bundling could be used by TLD registries to offer
+	additional service for it's registrants.  F.e. a hosting
+	company could create generic record for it's service and with
+	simple CNAME+DNAME bundle it can create all needed DNS
+	resource records for providing this service.
+      </t>
+      <t>
+	There are already such uses of CNAME which violates existing
+	DNS standards by replying with CNAME records in the apex of
+	the zone.  This proposal would allow these perpetrators to
+	comply with the DNS standard again.
+      </t>
+    </section>
+
+    <section title="CNAME+DNAME Bundle">
+      <t>
+	This proposal doesn't change wire formats of the existing
+	CNAME and DNAME records.  It also doesn't change handling of
+	the CNAME and DNAME on the resolver side.
+      </t>
+    </section>
+
+    <section title="Query processing">
+      <t>
+	Existing rules for a DNAME RR and a CNAME RR are still valid
+	with following exception: The DNAME and CNAME resource records
+	MAY co-exist at the same owner name in the parent zone.
+      </t>
+      <section title="Processing by Authoritative Servers">
+	<t>
+	  The authoritative server implementations MUST allow CNAME
+	  record when there is a DNAME record for the same name and
+	  vice versa.
+	</t>
+	<t>
+	  The authoritative server implementations compliant with this
+	  specification SHOULD add an associated DNAME record into an ADDITIONAL
+	  (or ANSWER?) section for any non-DNAME query along with the CNAME
+	  record that would be normally required.  This would allow recursive
+	  DNS server implementation that understand the DNAME record to
+	  synthetize the answers for the subtree directly without making an
+	  additional queries to the respective authoritative DNS servers.
+	</t>
+      </section>
+      <section title="Processing by Recursive Servers">
+	<t>
+	  The recursive server implementations MUST NOT deny CNAME
+	  record when there is a DNAME record already present in the
+	  cache for the same name and vice versa.
+	</t>
+	<t>
+	  The recursive DNS server implementation SHOULD accept the extra DNAME
+	  resource record that would be returned along with the CNAME record in
+	  the ADDITIONAL (or ANSWER?) section.
+	</t>
+      </section>
+    </section>
+
+    <!-- Possibly a 'Contributors' section ... -->
+    
+    <section anchor="Implementation" title="Implementation Report">
+      <t>
+	The author has implemented a change for BIND 9 authoritative server
+	during the IETF Hackathon in Montreal, and the domain with CNAME+DNAME
+	can be tested at www.cname-plus-dname.rocks.
+      </t>
+      <t>
+	The conducted experiment confirmed that BIND, Unbound and Google Public
+	DNS work fine, Knot Resolver has a bug that makes the DNS answer contain
+	the DNAME records, but with RCODE=SERVFAIL, and PowerDNS returns
+	RCODE=SERVFAIL for any DNAME query.  The other public DNS
+	implementations follow the errors of their respective deployed software.
+      </t>
+    </section>
+
+    <section anchor="Security" title="Security Considerations">
+      <t>
+	In case the recursive DNS server looking for records has enabled DNS
+	Query Name Minimization (<xref target="RFC7816">RFC&nbsp;7816</xref>),
+	the CNAME+DNAME specification might make the resolver send one more
+	label than needed from the original DNS Query Name to the nameservers
+	authoritative for the CNAME+DNAME records unless the authoritative DNS
+	server preemptively returns DNAME record along with the CNAME resource
+	record for the minimized query, and at the same time the recursive DNS
+	server understand the additional data in the answer and utilizes it to
+	synthetize the answer.
+      </t>
+    </section>
+
+    <section anchor="iana" title="IANA Considerations">
+      <t>This document makes no requests of IANA.</t>
+    </section>
+
+  </middle>
+
+  <!--  *****BACK MATTER ***** -->
+
+  <back>
+
+    <references title="Normative References">
+      <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.1034.xml"?-->
+      &RFC1034;
+
+      <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.1035.xml"?-->
+      &RFC1035;
+
+      <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.2119.xml"?-->
+      &RFC2119;
+
+      <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.6672.xml"?-->
+      &RFC6672;
+
+      <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.4034.xml"?-->
+      &RFC4034;
+
+    </references>
+
+    <references title="Informative References">
+      <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.3743.xml"?-->
+      &RFC3743;
+      <!--?rfc include="http://xml.resource.org/public/rfc/bibxml/reference.RFC.7816.xml"?-->
+      &RFC7816;
+    </references>
+    
+    <!-- Change Log
+      2010-04-15 version 00
+      -->
+  </back>
+</rfc>
