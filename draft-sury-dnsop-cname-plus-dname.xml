@@ -91,11 +91,11 @@
          keywords will be used for the search engine. -->
 
     <abstract>
-      <t>This document updates RFC1034 to allow coexistence of the CNAME
-      Resource Record with DNAME Resource Record at the same owner node, which
+      <t>This document updates RFC1034 to allow coexistence of a CNAME
+      Resource Record with a DNAME Resource Record at the same owner node, which
       provides redirection for a sub-tree of the domain name tree in the DNS
-      system, in a parent zone.  By allowing this cooexistence, DNS system will
-      have a way how to create a sub-tree redirection together that includes the
+      system, in a parent zone.  By allowing this cooexistence, the DNS system will
+      have a way how to create a sub-tree redirection that includes the
       Resource Records owner name.  This would allow parent zones to create full
       domain aliases.
       </t>
@@ -105,26 +105,26 @@
   <middle>
     <section title="Introduction">
       <t>
-	<xref target="RFC1034">RFC&nbsp;1034</xref> defines CNAME
+	<xref target="RFC1034">RFC&nbsp;1034</xref> defines the CNAME
 	resource record for cases when there are multiple names for
 	single host.  A CNAME resource record identifies its owner
 	name as an alias, and specifies the corresponding canonical
 	name in the RDATA section of the resource record.  If a CNAME
-	resource record is present at a node, no other data MUST be
+	resource record is present at a node, other data MUST NOT be
 	present; this ensures that the data for a canonical name and
-	its aliases cannot be different.  This rule also insures that
+	its aliases cannot be different.  This rule also ensures that
 	a cached CNAME can be used without checking with an
 	authoritative server for other resource record types.
       </t>
       <t>
-	However there is already existing exceptions to this
+	However there are already existing exceptions to this
 	rule.  <xref target="RFC4034">RFC&nbsp;4034</xref> defines
-	exception to RRSIG and NSEC records, which MUST exist for the
+	an exception to RRSIG and NSEC records, which MUST exist for the
 	same name as a CNAME resource record in a signed zone.
       </t>
 
       <t>
-	<xref target="RFC6672">RFC&nbsp;6672</xref> defines DNAME
+	<xref target="RFC6672">RFC&nbsp;6672</xref> defines the DNAME
 	resource record, which provides redirection for a sub-tree of
 	the domain name tree in the DNS system.  That is, all names
 	that end with a particular suffix are redirected to another
@@ -161,38 +161,38 @@
 
     <section title="Motivation">
       <t>
-	In some languages, some characters has the variants, which
-	look differently or very similar but are identical in the
+	In some languages, some characters have variants, which
+	look different or may look very similar but are identical in
 	meaning.  For example, Chinese character U+56FD and its
-	variant U+570B look differently, but are identical in the
-	meaning.  If Internationalized Domain Label or "IDL"
-	<xref target="RFC3743">RFC&nbsp;3743</xref> are composed of
-	variant characters, we regard this kind of IDL as the IDL
+	variant U+570B look different, but are identical in 
+	meaning.  If an Internationalized Domain Label or "IDL"
+	<xref target="RFC3743">RFC&nbsp;3743</xref> is composed of
+	variant characters, we regard this kind of IDL as an IDL
 	variant.  If these IDL variants are put into the DNS for
-	resolution, they are expected to be identical in the DNS
-	resolution.  More comprehensible example is that we expect
-	color.example.com to be equivalent with the colour.example.com
-	in the DNS resolution.  Currently this is something we are
+	resolution, they are expected to be identical in DNS
+	resolution.  A more comprehensible example is that we expect
+	color.example.com to be equivalent to colour.example.com
+	in its DNS resolution.  Currently this is something we are
 	unable to achieve without copying the data for the owner of
 	the domain record (ie. for the color.example.com) and keeping
-	it in sync by some external mechanism.  The CNAME+DNAME record
-	placed in the parent zone will remove this need for
+	it in sync by some external mechanism.  Having both CNAME+DNAME 
+	records in the parent zone will remove this need for
 	synchronization.  Without this bundling mechanism, current
-	mechanisms such as DNAME or CNAME are not enough capable to
+	mechanisms such as DNAME or CNAME are not adequate to
 	solve all the problems with the emergence of internationalized
 	domain names.  The internationalized domain names may have
-	alias or equivalence of the original one.
+	aliases or equivalent variants.
       </t>
       <t>
-	The CNAME+DNAME is not limited to internationalized domain
+	The CNAME+DNAME solution is not limited to internationalized domain
 	names.  This bundling could be used by TLD registries to offer
-	additional service for it's registrants.  F.e. a hosting
-	company could create generic record for it's service and with
-	simple CNAME+DNAME bundle it can create all needed DNS
+	an additional service for its registrants.  For example, a hosting
+	company could create a generic record for its service and with a
+	simple CNAME+DNAME bundle, create all needed DNS
 	resource records for providing this service.
       </t>
       <t>
-	There are already such uses of CNAME which violates existing
+	There are already uses of CNAME which violates existing
 	DNS standards by replying with CNAME records in the apex of
 	the zone.  This proposal would allow these perpetrators to
 	comply with the DNS standard again.
@@ -201,7 +201,7 @@
 
     <section title="CNAME+DNAME Bundle">
       <t>
-	This proposal doesn't change wire formats of the existing
+	This proposal doesn't change the wire formats of the existing
 	CNAME and DNAME records.  It also doesn't change handling of
 	the CNAME and DNAME on the resolver side.
       </t>
@@ -210,12 +210,12 @@
     <section title="Query processing">
       <t>
 	Existing rules for a DNAME RR and a CNAME RR are still valid
-	with following exception: The DNAME and CNAME resource records
+	with the following exception: The DNAME and CNAME resource records
 	MAY co-exist at the same owner name in the parent zone.
       </t>
       <section title="Processing by Authoritative Servers">
 	<t>
-	  The authoritative server implementations MUST allow CNAME
+	  The authoritative server implementations MUST allow a CNAME
 	  record when there is a DNAME record for the same name and
 	  vice versa.
 	</t>
@@ -224,19 +224,19 @@
 	  specification SHOULD add an associated DNAME record into an ADDITIONAL
 	  (or ANSWER?) section for any non-DNAME query along with the CNAME
 	  record that would be normally required.  This would allow recursive
-	  DNS server implementation that understand the DNAME record to
-	  synthetize the answers for the subtree directly without making an
+	  DNS server implementations that understand the DNAME record to
+	  synthesize the answers for the subtree directly without making
 	  additional queries to the respective authoritative DNS servers.
 	</t>
       </section>
       <section title="Processing by Recursive Servers">
 	<t>
-	  The recursive server implementations MUST NOT deny CNAME
+	  Recursive server implementations MUST NOT reject a CNAME
 	  record when there is a DNAME record already present in the
 	  cache for the same name and vice versa.
 	</t>
 	<t>
-	  The recursive DNS server implementation SHOULD accept the extra DNAME
+	  Recursive DNS server implementations SHOULD accept the extra DNAME
 	  resource record that would be returned along with the CNAME record in
 	  the ADDITIONAL (or ANSWER?) section.
 	</t>
@@ -247,12 +247,12 @@
     
     <section anchor="Implementation" title="Implementation Report">
       <t>
-	The author has implemented a change for BIND 9 authoritative server
-	during the IETF Hackathon in Montreal, and the domain with CNAME+DNAME
+	The author has implemented a change for the BIND 9 authoritative server
+	during the IETF 102 Hackathon in Montreal. A domain with CNAME+DNAME
 	can be tested at www.cname-plus-dname.rocks.
       </t>
       <t>
-	The conducted experiment confirmed that BIND, Unbound and Google Public
+	This experiment confirmed that BIND, Unbound and Google Public
 	DNS work fine, Knot Resolver has a bug that makes the DNS answer contain
 	the DNAME records, but with RCODE=SERVFAIL, and PowerDNS returns
 	RCODE=SERVFAIL for any DNAME query.  The other public DNS
@@ -262,15 +262,15 @@
 
     <section anchor="Security" title="Security Considerations">
       <t>
-	In case the recursive DNS server looking for records has enabled DNS
+	If the recursive DNS server looking for records has enabled DNS
 	Query Name Minimization (<xref target="RFC7816">RFC&nbsp;7816</xref>),
 	the CNAME+DNAME specification might make the resolver send one more
 	label than needed from the original DNS Query Name to the nameservers
 	authoritative for the CNAME+DNAME records unless the authoritative DNS
-	server preemptively returns DNAME record along with the CNAME resource
-	record for the minimized query, and at the same time the recursive DNS
-	server understand the additional data in the answer and utilizes it to
-	synthetize the answer.
+	server preemptively returns the DNAME record along with the CNAME resource
+	record for the minimized query. The recursive DNS server would have to 
+	understand the additional data in the answer and utilize it to synthesize 
+	the answer.
       </t>
     </section>
 
