@@ -95,7 +95,7 @@
       Resource Record with a DNAME Resource Record at the same owner node, which
       provides redirection for a sub-tree of the domain name tree in the DNS
       system, in a parent zone.  By allowing this cooexistence, the DNS system will
-      have a way how to create a sub-tree redirection  that includes the
+      have a way how to create a sub-tree redirection that includes the
       Resource Records owner name.  This would allow parent zones to create full
       domain aliases.
       </t>
@@ -110,7 +110,7 @@
 	single host.  A CNAME resource record identifies its owner
 	name as an alias, and specifies the corresponding canonical
 	name in the RDATA section of the resource record.  If a CNAME
-	resource record is present at a node, no other data SHOULD be
+	resource record is present at a node, other data MUST NOT be
 	present; this ensures that the data for a canonical name and
 	its aliases cannot be different.  This rule also ensures that
 	a cached CNAME can be used without checking with an
